@@ -1,21 +1,48 @@
 const express = require("express");
-const {findUserByEmail, registerUser} = require("../controllers/userController");
+const {findUserByEmail, registerUser, isPasswordTheSame, createUserToken} = require("../controllers/userController");
 
 const router = express.Router();
 
 
 router.post("/register", async (req, res) => {
-    const userData = req.body;
-    const userExists = await findUserByEmail(userData.email);
-    if (userExists) {
-        return res.status(401).json({"message":"User already exists"});
-    }
+    try{
+        const userData = req.body;
+        const userExists = await findUserByEmail(userData.email);
+        
+        if(userExists){
+            return res.status(409).json({"message":"user already exists"})
+        }
 
-    try {
         const user = await registerUser(userData);
-        return res.status(200).json({"message":"registered"});
-    }catch (error){
-        return res.status(400).json({"message":"missing informations"});
+        delete user.password
+        return res.status(200).json({"message":"registred",user})
+    
+    }catch(error){
+        return res.status(400).json({"message":"missing data body values"})
+    }
+})
+
+
+router.post("/login",async(req,res)=>{
+    try{
+        const data = req.body;
+        
+        const userFinded = await findUserByEmail(data.email);
+        if(!userFinded){
+            return res.status(401).json({"message":"invalid credentials"})
+        }
+
+        const isPasswordValid = await isPasswordTheSame(data.password,userFinded.password);
+        if(!isPasswordValid){
+            return res.status(401).json({"message":"invalid credentials"})
+        }
+
+        delete userFinded.password;
+
+        const userToken = await createUserToken(userFinded.id,userFinded.email);
+        return res.status(200).json({"message":"Login Successful","token": userToken})
+    }catch(error){
+        return res.status(400).json({"message":"missing data body values"})
     }
 })
 
