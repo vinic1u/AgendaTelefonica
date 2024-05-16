@@ -1,9 +1,10 @@
 const {prisma} = require("../db/prisma");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 
 const findUserByEmail = (email) => {
-    return prisma.user.findFirst({where: {email: email}})
+    return prisma.user.findUnique({where: {email: email}})
 }
 const registerUser = (data) => {
     const hash = bcrypt.hashSync(data.password, 10)
@@ -15,7 +16,18 @@ const registerUser = (data) => {
     })
 }
 
+
+const isPasswordTheSame = (reqPassword,userPassword) => {
+    return bcrypt.compareSync(reqPassword,userPassword);
+}
+
+const createUserToken = (userId,userEmail) => {
+    return jwt.sign({"id":userId,"email":userEmail},process.env.SECRET)
+}
+
 module.exports = {
     findUserByEmail,
-    registerUser
+    registerUser,
+    isPasswordTheSame,
+    createUserToken
 }
