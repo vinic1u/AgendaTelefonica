@@ -1,5 +1,5 @@
 const express = require("express");
-const {findUserByEmail, registerUser, isPasswordTheSame, createUserToken} = require("../controllers/userController");
+const {findUserByEmail, registerUser, isPasswordTheSame, createUserToken} = require("../services/userService");
 
 const router = express.Router();
 
