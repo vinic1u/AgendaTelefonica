@@ -15,3 +15,10 @@ model User {
   email    String @unique
   password String
 }
+
+model Contact{
+  id Int @id @default(autoincrement())
+  name String
+  phone String
+  email String
+}
