@@ -25,9 +25,14 @@ const createUserToken = (userId,userEmail) => {
     return jwt.sign({"id":userId,"email":userEmail},process.env.SECRET)
 }
 
+const validUserToken = (userToken) => {
+    return jwt.verify(userToken,process.env.SECRET);
+}
+
 module.exports = {
     findUserByEmail,
     registerUser,
     isPasswordTheSame,
-    createUserToken
+    createUserToken,
+    validUserToken
 }

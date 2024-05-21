@@ -1,42 +1,50 @@
 const {prisma} = require("../db/prisma");
 
 
-const createContact = (data) => {
+const createContact = (data,userId) => {
     return prisma.contact.create({
         data : {
             name : data.name,
             phone : data.phone,
-            email : data.email
+            email : data.email,
+            userId : userId
         }
     })
 }
 
-const getAllContacts = () => {
-    return prisma.contact.findMany();
+const getAllContacts = (userId) => {
+    return prisma.contact.findMany({
+        where : {
+            userId : userId
+        }
+    });
 }
 
-const getContactById = (id) => {
+const getContactById = (id,userId) => {
     return prisma.contact.findUnique({
         where : {
-            id : id
+            id : id,
+            userId : userId
         }
     })
 }
 
-const updateContact = (id,newData) => {
+const updateContact = (id,newData,userId) => {
     const contact = prisma.contact.update({
         data : newData,
         where : {
-            id : id
+            id : id,
+            userId : userId
         }
     })
     return contact
 }
 
-const deleteContact = (id) => {
+const deleteContact = (id,userId) => {
     const contact = prisma.contact.delete({
         where : {
-            id : id
+            id : id,
+            userId : userId
         }
     })
     return contact

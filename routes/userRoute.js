@@ -1,49 +1,68 @@
 const express = require("express");
 const {findUserByEmail, registerUser, isPasswordTheSame, createUserToken} = require("../services/userService");
-
+const {z, ZodError} = require("zod");
 const router = express.Router();
+
+const UserSchema = z.object({
+    email : z.string({
+        "message" : "missing email value"
+    }).email(),
+    password : z.string({
+        "message" : "missing password value"
+    }).min(6,"password must have more than 6 chars")
+})
 
 
 router.post("/register", async (req, res) => {
     try{
-        const userData = req.body;
-        const userExists = await findUserByEmail(userData.email);
+        const data = UserSchema.parse(req.body);
         
+        const userExists = await findUserByEmail(data.email);
         if(userExists){
-            return res.status(409).json({"message":"user already exists"})
+            return res.status(409).json({"message":"user already exists"});
         }
 
-        const user = await registerUser(userData);
-        delete user.password
-        return res.status(200).json({"message":"registred",user})
-    
+
+        const user = await registerUser(data);
+        delete user.password;
+        
+        return res.status(201).json({"message":"registred",user});
     }catch(error){
-        return res.status(400).json({"message":"missing data body values"})
+        if(error instanceof ZodError){
+            return res.send(error.errors.map((err)=> err.message));
+        }
+        return res.status(500).send();
     }
+
 })
 
 
 router.post("/login",async(req,res)=>{
+    
     try{
-        const data = req.body;
-        
-        const userFinded = await findUserByEmail(data.email);
-        if(!userFinded){
-            return res.status(401).json({"message":"invalid credentials"})
+        const data = UserSchema.parse(req.body);
+
+        const userExists = await findUserByEmail(data.email);
+
+        if(!userExists){
+            return res.status(401).json({"message":"invalid credentials"}); 
         }
 
-        const isPasswordValid = await isPasswordTheSame(data.password,userFinded.password);
-        if(!isPasswordValid){
-            return res.status(401).json({"message":"invalid credentials"})
+        const validPassword = await isPasswordTheSame(data.password,userExists.password);
+
+        if(!validPassword){
+            return res.status(401).json({"message":"invalid credentials"}); 
         }
 
-        delete userFinded.password;
-
-        const userToken = await createUserToken(userFinded.id,userFinded.email);
-        return res.status(200).json({"message":"Login Successful","token": userToken})
+        const userToken = await createUserToken(userExists.id,userExists.email);
+        return res.status(200).json({"message":"Logged",userToken});
     }catch(error){
-        return res.status(400).json({"message":"missing data body values"})
+        if(error instanceof ZodError){
+            return res.send(error.errors.map((err)=>err.message));
+        }
+        return res.status(500).send();
     }
+
 })
 
 module.exports = {
