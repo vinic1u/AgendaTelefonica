@@ -4,7 +4,7 @@ const {router : contactRouter} = require("./routes/contactRoute");
 
 const app = express();
 
-const port = 8080;
+const port = process.env.PORT;
 app.use(express.json());
 
 app.use("/v1",userRouter);
