@@ -24,6 +24,9 @@ router.post("/contato",auth,async (req,res)=>{
         const data = CreateContactSchema.parse(req.body);
         
         const contact = await createContact(data,req.user);
+        delete contact.userId;
+
+
         return res.status(201).json({"message":"contact created",contact});
     }catch(error){
         if(error instanceof ZodError){
@@ -51,6 +54,8 @@ router.put("/contato/:id",auth,async (req,res)=> {
 
         const updatedContact = await updateContact(contactId,data,req.user);
 
+        delete updatedContact.userId;
+
         return res.status(200).json({"message":"contact updated",updatedContact});
     }catch(error){
         if(error instanceof ZodError) return res.send(error.errors.map((err)=>err.message));
@@ -70,7 +75,7 @@ router.delete("/contato/:id",auth,async(req,res)=> {
     }
 
     const deletedContact = await deleteContact(contactId);
-    return res.status(200).json({"message": `contact with id ${contactId} deleted`,deletedContact});
+    return res.status(200).json({"message": `contact with id ${contactId} deleted`});
 })
 
 module.exports = {
