@@ -16,6 +16,13 @@ const getAllContacts = (userId) => {
     return prisma.contact.findMany({
         where : {
             userId : userId
+        },
+        select : {
+            id : true,
+            name : true,
+            phone : true,
+            email : true,
+            userId : false
         }
     });
 }
